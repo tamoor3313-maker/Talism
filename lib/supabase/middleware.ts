@@ -37,12 +37,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // /matchmaker is intentionally NOT in this list — talking to the AI
-  // matchmaker never requires an account, whether or not login is
-  // working. Other pages genuinely need an account (they show your real
-  // matches, messages, profile) so those stay protected.
-  const protectedPaths = ["/home", "/discover", "/match", "/messages", "/profile"];
-  const isProtected = protectedPaths.some((p) => request.nextUrl.pathname.startsWith(p));
+  // /matchmaker and /courses are intentionally NOT in this list — talking
+  // to the AI and browsing/buying courses never requires an account.
+  // Other pages genuinely need an account (real matches, messages,
+  // profile, purchased-course library) so those stay protected.
+  //
+  // Match on path segments, not raw prefixes — "/match".startsWith would
+  // also match "/matchmaker", which is exactly the bug this avoids.
+  const protectedPaths = ["/home", "/discover", "/match", "/messages", "/profile", "/my-courses", "/coach/dashboard"];
+  const isProtected = protectedPaths.some((p) => {
+    const path = request.nextUrl.pathname;
+    return path === p || path.startsWith(`${p}/`);
+  });
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();

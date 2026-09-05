@@ -33,7 +33,7 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      await supabase.from("profiles").insert({ id: data.user.id, name });
+      await supabase.from("profiles").insert({ id: data.user.id, name, email });
       await supabase.from("privacy_settings").insert({ user_id: data.user.id });
     }
 

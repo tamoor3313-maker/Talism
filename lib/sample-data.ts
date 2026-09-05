@@ -144,3 +144,76 @@ export const myProfile: ProfileData = {
   dealBreakers: ["Doesn't want kids", "Smoking"],
   interests: ["Coffee", "Cycling", "Sci-fi novels", "Cooking"],
 };
+
+export type Course = {
+  id: string;
+  title: string;
+  description: string;
+  topic: string;
+  priceCents: number;
+  coachName: string;
+  coachHeadline: string;
+  thumbnailTone: string;
+  lessonCount: number;
+};
+
+export const courses: Course[] = [
+  {
+    id: "confidence-foundations",
+    title: "Confidence Foundations",
+    description:
+      "A practical, no-fluff course on building real dating confidence — not scripts or tricks, just the mindset and habits that make you naturally more at ease.",
+    topic: "Confidence",
+    priceCents: 4900,
+    coachName: "Renee Ashford",
+    coachHeadline: "Dating coach, 8 years, former matchmaker",
+    thumbnailTone: "#8f3346",
+    lessonCount: 6,
+  },
+  {
+    id: "age-gap-dating-older-women",
+    title: "Dating Older Women: What Actually Works",
+    description:
+      "For younger men interested in dating older women — communication styles, common misconceptions, and how to show up as an equal, not a project.",
+    topic: "Age-gap dating",
+    priceCents: 5900,
+    coachName: "Marcus Webb",
+    coachHeadline: "Relationship coach specializing in age-gap dynamics",
+    thumbnailTone: "#c9a15a",
+    lessonCount: 5,
+  },
+  {
+    id: "texting-that-works",
+    title: "Texting That Actually Gets Replies",
+    description:
+      "The difference between texts that die in the group chat and texts that lead somewhere — pacing, tone, and reading real interest vs. politeness.",
+    topic: "Communication",
+    priceCents: 3900,
+    coachName: "Priya Chandran",
+    coachHeadline: "Communication coach, former dating app product lead",
+    thumbnailTone: "#5c5766",
+    lessonCount: 4,
+  },
+  {
+    id: "recovering-from-rejection",
+    title: "Recovering From Rejection & Getting Back Out There",
+    description:
+      "A short course for the period after a breakup or a string of rejections — how to process it honestly and re-enter dating without carrying resentment.",
+    topic: "Mindset",
+    priceCents: 2900,
+    coachName: "Renee Ashford",
+    coachHeadline: "Dating coach, 8 years, former matchmaker",
+    thumbnailTone: "#8f3346",
+    lessonCount: 4,
+  },
+];
+
+export type CoachProfile = {
+  userId: string;
+  name: string;
+  headline: string;
+  bio: string;
+  status: "pending" | "approved" | "rejected";
+};
+
+export const myCoachApplication: CoachProfile | null = null;

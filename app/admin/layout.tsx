@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ThreadMark } from "@/components/thread-mark";
 import { requireAdmin } from "@/lib/require-admin";
-import { LayoutDashboard, Users, Flag, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Flag, CreditCard, GraduationCap } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/coach-applications", label: "Coach applications", icon: GraduationCap },
   { href: "/admin/reports", label: "Reports", icon: Flag },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
 ];

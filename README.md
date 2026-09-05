@@ -149,3 +149,61 @@ for anyone, logged in or not:
 
 Pages that inherently need an account — Home, Discover, Messages,
 Profile — are unaffected and still require login.
+
+## Coaching marketplace
+
+Real coaches apply, get approved by an admin, then create and sell
+courses. Buyers get lifetime access to purchased course content.
+
+**Flow**
+1. Anyone applies at `/coach/apply` (headline + bio) — starts `pending`.
+2. Admin reviews at `/admin/coach-applications` — approve or reject.
+3. Approved coaches manage courses at `/coach/dashboard`: create a course
+   (`/coach/dashboard/new`), add lessons, then publish.
+4. Published courses appear in the public marketplace at `/courses`,
+   filterable by topic.
+5. Buyers purchase via Stripe Checkout (dynamic price per course, no
+   Stripe Price ID needed) at `/courses/[id]`.
+6. The Stripe webhook records the purchase in `course_purchases` with a
+   **20% platform fee** (`PLATFORM_FEE_PERCENT` in
+   `app/api/coach-marketplace/purchase/route.ts` — change the split
+   there) and the coach's share, both computed and stored per sale.
+7. Buyers view lesson content at `/my-courses/[id]` — access is enforced
+   by a Postgres RLS policy on `lessons` requiring a matching row in
+   `course_purchases`, not just app-level logic.
+
+**Not built**: actual payouts to coaches. This tracks each coach's
+earnings per sale in `course_purchases.coach_earnings_cents`, but sending
+that money to coaches requires Stripe Connect (each coach onboarding
+their own connected account) — a meaningfully bigger integration than
+what's here, worth building as its own phase once you have real coaches
+and real sales to justify it.
+
+## Buy and interact without an account
+
+The core principle now: **nobody has to sign up to spend money or talk to
+the AI.**
+
+- **`/quiz`** — a public, no-signup, 4-question dating archetype quiz with
+  a shareable text result. Links out to the matchmaker chat and
+  topic-matched courses. Pure client-side logic, no backend needed.
+- **Guest course checkout** — `/courses/[id]`'s Buy button works with no
+  login. Stripe Checkout collects the buyer's email itself. The webhook
+  (`app/api/stripe/webhook/route.ts`) then finds-or-creates a lightweight
+  account from that email (`findOrCreateGuestAccount`, using
+  `supabase.auth.admin.inviteUserByEmail` so they get a real email with a
+  link to set a password) and records the purchase against it — so a
+  first-time buyer never sees a signup form before paying, but still has
+  somewhere to come back to afterward.
+- **`/purchase-success`** — public confirmation page; tells guests to
+  check their email, sends logged-in buyers straight to My Courses.
+- Fixed a real bug in `middleware.ts`: the protected-routes check used
+  `pathname.startsWith("/match")`, which also matched `/matchmaker` by
+  accident (since "/matchmaker" starts with "/match") — meaning the
+  "chat without login" feature from before was actually still redirecting
+  to `/login`. Now matches on exact path segments instead.
+
+`profiles` gained an `email` column (mirrored from `auth.users` at
+signup and guest-checkout time) specifically so the webhook can look up
+"has this email already got an account?" without an extra admin API
+call on every repeat guest purchase.

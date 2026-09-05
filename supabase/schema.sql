@@ -10,6 +10,10 @@ create extension if not exists "vector";
 create table if not exists profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null,
+  email text, -- mirrored from auth.users at signup/guest-checkout time so
+              -- server code can look up a profile by email without
+              -- needing an admin API call every time (e.g. matching a
+              -- repeat guest checkout to their existing account)
   birthdate date,
   location text,
   bio text,
@@ -281,3 +285,116 @@ create policy "users update their own avatar"
   on storage.objects for update
   to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ─────────────────────────────────────────────
+-- Coaching marketplace
+-- ─────────────────────────────────────────────
+
+create table if not exists coaches (
+  user_id uuid primary key references profiles (id) on delete cascade,
+  headline text,
+  bio text,
+  status text check (status in ('pending', 'approved', 'rejected')) default 'pending',
+  applied_at timestamptz default now(),
+  reviewed_at timestamptz
+);
+
+alter table coaches enable row level security;
+
+create policy "anyone can view approved coaches"
+  on coaches for select
+  to authenticated
+  using (status = 'approved' or user_id = auth.uid());
+
+create policy "users can apply to be a coach"
+  on coaches for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+create policy "coaches can update their own application before review"
+  on coaches for update
+  to authenticated
+  using (user_id = auth.uid() and status = 'pending')
+  with check (user_id = auth.uid());
+-- Approving/rejecting an application is done via the service-role client
+-- from the admin dashboard, which bypasses RLS entirely.
+
+create table if not exists courses (
+  id uuid primary key default gen_random_uuid(),
+  coach_id uuid references coaches (user_id) on delete cascade,
+  title text not null,
+  description text,
+  topic text,
+  price_cents int not null default 0,
+  thumbnail_url text,
+  status text check (status in ('draft', 'published')) default 'draft',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table courses enable row level security;
+
+create policy "anyone can view published courses"
+  on courses for select
+  to authenticated
+  using (status = 'published' or coach_id = auth.uid());
+
+create policy "coaches manage their own courses"
+  on courses for all
+  to authenticated
+  using (coach_id = auth.uid())
+  with check (coach_id = auth.uid());
+
+create table if not exists lessons (
+  id uuid primary key default gen_random_uuid(),
+  course_id uuid references courses (id) on delete cascade,
+  title text not null,
+  content text,
+  video_url text,
+  order_index int not null default 0,
+  created_at timestamptz default now()
+);
+
+alter table lessons enable row level security;
+
+create policy "coaches manage lessons on their own courses"
+  on lessons for all
+  to authenticated
+  using (exists (select 1 from courses c where c.id = course_id and c.coach_id = auth.uid()))
+  with check (exists (select 1 from courses c where c.id = course_id and c.coach_id = auth.uid()));
+
+create policy "buyers can view lessons for courses they purchased"
+  on lessons for select
+  to authenticated
+  using (
+    exists (
+      select 1 from course_purchases cp
+      where cp.course_id = lessons.course_id and cp.user_id = auth.uid()
+    )
+  );
+
+create table if not exists course_purchases (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles (id) on delete cascade,
+  course_id uuid references courses (id) on delete cascade,
+  stripe_checkout_session_id text,
+  amount_cents int not null,
+  platform_fee_cents int not null,
+  coach_earnings_cents int not null,
+  created_at timestamptz default now(),
+  unique (user_id, course_id)
+);
+
+alter table course_purchases enable row level security;
+
+create policy "buyers see their own purchases"
+  on course_purchases for select
+  to authenticated
+  using (user_id = auth.uid());
+
+create policy "coaches see purchases of their own courses"
+  on course_purchases for select
+  to authenticated
+  using (exists (select 1 from courses c where c.id = course_id and c.coach_id = auth.uid()));
+-- Purchase rows are inserted by the Stripe webhook handler via the
+-- service-role client, never directly by the client.

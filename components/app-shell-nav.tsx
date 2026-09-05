@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Compass, MessageCircle, User, Sparkles, LogOut } from "lucide-react";
+import { Home, Compass, MessageCircle, User, Sparkles, LogOut, GraduationCap } from "lucide-react";
 import { ThreadMark } from "@/components/thread-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ const items = [
   { href: "/home", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
   { href: "/matchmaker", label: "AI Matchmaker", icon: Sparkles },
+  { href: "/courses", label: "Courses", icon: GraduationCap },
   { href: "/messages", label: "Messages", icon: MessageCircle },
   { href: "/profile", label: "Profile", icon: User },
 ];

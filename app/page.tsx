@@ -38,6 +38,13 @@ export default function LandingPage() {
               <ArrowUpRight size={14} />
             </a>
           </div>
+          <p className="mt-4 text-sm text-text-muted dark:text-text-on-ink-muted">
+            Not ready to talk?{" "}
+            <a href="/quiz" className="text-garnet underline underline-offset-4 dark:text-brass">
+              Take the 1-minute dating archetype quiz
+            </a>{" "}
+            instead.
+          </p>
           <dl className="mt-14 grid max-w-md grid-cols-3 gap-6 border-t border-ink-line/60 pt-6">
             {[
               ["18 min", "avg. first conversation"],

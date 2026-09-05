@@ -32,3 +32,30 @@ export async function requireAdmin() {
 
   return user;
 }
+
+/**
+ * Same admin check, but for API route handlers, where redirect() doesn't
+ * make sense — returns null when the caller isn't an admin, and the
+ * route should respond with a 403 in that case, instead of a redirect.
+ */
+export async function requireAdminApi() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { id: "demo-admin", email: "demo@talism.ai" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const service = createServiceClient();
+  const { data: admin } = await service
+    .from("admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return admin ? user : null;
+}
