@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { FloatingMatchmaker } from "@/components/floating-matchmaker";
 
 export const metadata: Metadata = {
   title: "TALISM — AI Matchmaking, Done Properly",
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <FloatingMatchmaker />
+        </ThemeProvider>
       </body>
     </html>
   );

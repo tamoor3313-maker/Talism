@@ -37,7 +37,13 @@ export default function MatchmakerPage() {
       const res = await fetch("/api/matchmaker/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          history: messages.map((m) => ({
+            role: m.from === "ai" ? "assistant" : "user",
+            content: m.text,
+          })),
+        }),
       });
       if (!res.ok) throw new Error("backend not configured");
       const data = await res.json();

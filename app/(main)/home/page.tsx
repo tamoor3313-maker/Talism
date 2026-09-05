@@ -2,6 +2,23 @@ import { candidates } from "@/lib/sample-data";
 import { MatchCard } from "@/components/match-card";
 import { ThreadMark } from "@/components/thread-mark";
 import { LinkButton } from "@/components/ui/button";
+import {
+  Sparkles,
+  MessageSquareText,
+  MessagesSquare,
+  CalendarHeart,
+  Shirt,
+  Wand2,
+} from "lucide-react";
+
+const coachCards = [
+  { href: "/coach/bio-builder", icon: Wand2, title: "Improve My Profile", desc: "Rewrite your bio in the tone that fits you" },
+  { href: "/coach/what-to-say", icon: MessageSquareText, title: "What Should I Text?", desc: "Get help with a specific message" },
+  { href: "/coach/conversation", icon: MessagesSquare, title: "Analyze My Conversation", desc: "Paste a chat, get reply options" },
+  { href: "/coach/planner", icon: CalendarHeart, title: "Plan a Date", desc: "Ideas that fit your budget and vibe" },
+  { href: "/coach/style", icon: Shirt, title: "What Should I Wear?", desc: "Outfit advice for any kind of date" },
+  { href: "/coach/profile-review", icon: Sparkles, title: "Ask the Dating Coach", desc: "Get your existing profile reviewed" },
+];
 
 export default function HomePage() {
   const top = candidates[0];
@@ -27,6 +44,28 @@ export default function HomePage() {
             See why you match
           </LinkButton>
         </div>
+      </div>
+
+      <div className="mt-10 flex items-center justify-between">
+        <h2 className="font-display text-xl">Your dating coach</h2>
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {coachCards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <a
+              key={c.href}
+              href={c.href}
+              className="rounded-2xl border border-ink-line/60 bg-paper-raised p-5 transition-shadow hover:shadow-md dark:bg-ink-raised"
+            >
+              <Icon size={19} className="text-garnet dark:text-brass" />
+              <h3 className="mt-3 font-medium">{c.title}</h3>
+              <p className="mt-1 text-sm text-text-muted dark:text-text-on-ink-muted">
+                {c.desc}
+              </p>
+            </a>
+          );
+        })}
       </div>
 
       <div className="mt-10 flex items-center justify-between">

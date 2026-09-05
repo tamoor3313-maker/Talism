@@ -105,3 +105,47 @@ Voyage AI + Stripe.
 Everything else from the original spec is implemented in real, working
 code above — the only thing standing between this and a live product is
 dropping in your own Supabase/Groq/Voyage/Stripe credentials.
+
+## Dating Coach features (folded into TALISM)
+
+Six additional AI-powered coach tools, reachable from Home's dashboard
+cards and directly at these URLs:
+
+- `/coach/bio-builder` — generate dating bios by tone and type
+- `/coach/profile-review` — paste an existing bio, get a score + rewrite
+- `/coach/conversation` — paste a chat, get a read + reply options by tone
+- `/coach/what-to-say` — quick situational advice (what to text, how to
+  ask someone out, etc.)
+- `/coach/style` — outfit advice for a date
+- `/coach/planner` — date ideas based on budget/location/interests
+
+All six call Groq/Llama through `lib/coach-prompts.ts` system prompts,
+which share a safety preamble (authenticity, consent, no manipulation or
+harassment help, clear about uncertainty when reading someone else's
+intent). Same `GROQ_API_KEY` env var powers these as the AI Matchmaker.
+
+## Floating Matchmaker chat
+
+A persistent chat bubble (`components/floating-matchmaker.tsx`) appears
+in the bottom-right corner on every main page — not just the full-screen
+`/matchmaker` page. It's hidden on `/matchmaker`, `/onboarding`,
+`/login`, `/signup`, and `/admin`, where a floating bubble would be
+redundant. Uses the same `/api/matchmaker/chat` endpoint and the same
+demo-reply fallback.
+
+## Talking to the AI Matchmaker requires no account
+
+Both the floating chat bubble and the full-screen `/matchmaker` page work
+for anyone, logged in or not:
+
+- `middleware.ts` no longer protects `/matchmaker` — visiting it never
+  redirects to `/login`.
+- `/api/matchmaker/chat` checks for a logged-in user but doesn't require
+  one. Logged-in users get their conversation remembered across visits
+  (per their privacy toggle); anonymous visitors get a normal, coherent
+  conversation for the current session (the client sends along the
+  session's message history with each request), just with nothing saved
+  server-side once they close the tab.
+
+Pages that inherently need an account — Home, Discover, Messages,
+Profile — are unaffected and still require login.

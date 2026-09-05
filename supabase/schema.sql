@@ -161,32 +161,6 @@ create policy "participants can send messages in their conversation"
   );
 
 -- ─────────────────────────────────────────────
--- Candidate retrieval by embedding similarity
--- ─────────────────────────────────────────────
-create or replace function match_candidates(
-  query_embedding vector(1024),
-  match_user_id uuid,
-  match_count int default 10
-)
-returns table (id uuid, similarity float)
-language sql stable
-as $$
-  select
-    p.id,
-    1 - (p.embedding <=> query_embedding) as similarity
-  from profiles p
-  where p.id != match_user_id
-    and p.embedding is not null
-    and p.id not in (
-      select blocked_id from blocks where blocker_id = match_user_id
-      union
-      select blocker_id from blocks where blocked_id = match_user_id
-    )
-  order by p.embedding <=> query_embedding
-  limit match_count;
-$$;
-
--- ─────────────────────────────────────────────
 -- Safety: blocks & reports
 -- ─────────────────────────────────────────────
 create table if not exists blocks (
@@ -225,6 +199,32 @@ create policy "users can see reports they filed"
   on reports for select
   to authenticated
   using (auth.uid() = reporter_id);
+
+-- ─────────────────────────────────────────────
+-- Candidate retrieval by embedding similarity
+-- ─────────────────────────────────────────────
+create or replace function match_candidates(
+  query_embedding vector(1024),
+  match_user_id uuid,
+  match_count int default 10
+)
+returns table (id uuid, similarity float)
+language sql stable
+as $$
+  select
+    p.id,
+    1 - (p.embedding <=> query_embedding) as similarity
+  from profiles p
+  where p.id != match_user_id
+    and p.embedding is not null
+    and p.id not in (
+      select blocked_id from blocks where blocker_id = match_user_id
+      union
+      select blocker_id from blocks where blocked_id = match_user_id
+    )
+  order by p.embedding <=> query_embedding
+  limit match_count;
+$$;
 
 -- ─────────────────────────────────────────────
 -- Subscriptions (Stripe)

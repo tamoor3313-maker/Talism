@@ -37,7 +37,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const protectedPaths = ["/home", "/discover", "/match", "/matchmaker", "/messages", "/profile"];
+  // /matchmaker is intentionally NOT in this list — talking to the AI
+  // matchmaker never requires an account, whether or not login is
+  // working. Other pages genuinely need an account (they show your real
+  // matches, messages, profile) so those stay protected.
+  const protectedPaths = ["/home", "/discover", "/match", "/messages", "/profile"];
   const isProtected = protectedPaths.some((p) => request.nextUrl.pathname.startsWith(p));
 
   if (isProtected && !user) {
